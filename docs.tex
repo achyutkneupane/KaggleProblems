@@ -1,0 +1,220 @@
+\documentclass{exam}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{booktabs}
+
+
+\title{CSC3639 BIG DATA ANALYSIS}
+\author{Achyut Neupane}
+\date{19 June, 2024}
+
+\begin{document}
+
+    \maketitle
+
+    \part*{\center{Week 2: Titanic - Machine Learning from Disaster}}
+
+    Overleaf link: \href{https://www.overleaf.com/read/kyqbrgznnksh}{https://www.overleaf.com/read/kyqbrgznnksh}
+
+    \section*{Questions}
+    \begin{questions}
+
+        \question \textbf{Participate in the Titanic - Machine Learning from Disaster competition on Kaggle.}
+
+        \begin{TheSolution}
+
+        The documentation of my experience in the Titanic - Machine Learning from Disaster competition on Kaggle:
+
+        \section{Attempt 1}
+
+        I referred to \href{https://youtu.be/I3FBJdiExcg}{this} walkthrough video to get started with the competition. Although, I made most of the steps in this attempt myself, I referred to the video for the parts that I was stuck at.
+
+        \subsection{Analysing the Dataset}
+
+        Total of three datasets were provided: $\texttt{train.csv}$, $\texttt{test.csv}$, and $\texttt{gender\_submission.csv}$.
+
+        \subsubsection{Train Dataset}
+
+        The train dataset contains the following columns:
+
+        \begin{itemize}
+            \item \textbf{PassengerId}: Unique ID of the passenger
+            \item \textbf{Survived}: Whether the passenger survived or not (0 = No, 1 = Yes)
+            \item \textbf{Pclass}: Ticket class (1 = 1st, 2 = 2nd, 3 = 3rd)
+            \item \textbf{Name}: Name of the passenger
+            \item \textbf{Sex}: Gender of the passenger
+            \item \textbf{Age}: Age of the passenger
+            \item \textbf{SibSp}: Number of siblings/spouses aboard the Titanic
+            \item \textbf{Parch}: Number of parents/children aboard the Titanic
+            \item \textbf{Ticket}: Ticket number
+            \item \textbf{Fare}: Passenger fare
+            \item \textbf{Cabin}: Cabin number
+            \item \textbf{Embarked}: Port of embarkation (C = Cherbourg, Q = Queenstown, S = Southampton)
+        \end{itemize}
+
+        Its imported using:
+
+        \begin{lstlisting}[language=Python]
+    import pandas as pd
+    train_data = pd.read_csv("dataset/train.csv")
+        \end{lstlisting}
+
+        \subsubsection{Test Dataset}
+
+        The test dataset contains the same columns as the train dataset except the \textbf{Survived} column. Its imported using:
+
+        \begin{lstlisting}[language=Python]
+    test_data = pd.read_csv("dataset/test.csv")
+        \end{lstlisting}
+
+        \subsubsection{Gender Submission}
+
+        The gender submission dataset contains the \textbf{PassengerId} and \textbf{Survived} columns. This dataset provides example of how the submission file should look like.
+
+        \subsection{Model Building}
+
+        I used the Random Forest Classifier to build the model. The model was trained on the train dataset and tested on the test dataset. \\
+
+        \large{\textbf{Why Random Forest?}} \\
+        \normalsize
+        Random Forest is a versatile machine learning algorithm that can be used for both classification and regression tasks. It is an ensemble method that creates multiple decision trees and merges them together to get a more accurate and stable prediction.\\
+        For this dataset, Random Forest was chosen because it is a simple and easy to use algorithm that can handle both categorical and numerical data.
+
+        \newpage
+
+        \begin{lstlisting}[language=Python]
+    from sklearn.ensemble import RandomForestClassifier
+
+    y = train_data["Survived"]
+
+    features = ["Pclass", "Sex", "SibSp", "Parch"]
+    X = pd.get_dummies(train_data[features])
+    X_test = pd.get_dummies(test_data[features])
+
+    model = RandomForestClassifier(
+        n_estimators=100,
+        max_depth=5,
+        random_state=1
+    )
+    model.fit(X, y)
+    predictions = model.predict(X_test)
+
+    output = pd.DataFrame({
+        'PassengerId': test_data.PassengerId,
+        'Survived': predictions
+    })
+    output.to_csv('submission.csv', index=False)
+        \end{lstlisting}
+
+        From the train dataset, the \textbf{Survived} column was separated as the target variable. The features used for training the model were \textbf{Pclass}, \textbf{Sex}, \textbf{SibSp}, and \textbf{Parch}. These features were one-hot encoded using $\texttt{pd.get\_dummies()}$ function. The model was trained using the Random Forest Classifier with 100 estimators and a maximum depth of 5. The predictions were saved in a CSV file $\texttt{submission.csv}$.
+
+        \subsection{Submission}
+
+        The model was trained on the train dataset and tested on the test dataset. The predictions were saved in a CSV file $\texttt{submission.csv}$ and submitted to Kaggle.
+
+        \subsection{Result}
+
+        The model achieved an accuracy of $\texttt{0.77511}$ for which I was ranked $\texttt{9,628}$ out of $\texttt{16,854}$ participants. \\
+
+        Github link: \href{https://github.com/achyutkneupane/KaggleTitanic/tree/b08be5fb8b1ad8e8920d3eeee34cc4ac3ca8c2bf}{b08be5fb8b1ad8e8920d3eeee34cc4ac3ca8c2bf}
+
+        \newpage
+
+        \section{Attempt 2}
+
+        In the second attempt, I tried to improve the model by adding more features and tuning the hyperparameters.
+
+        \subsection{Feature Engineering}
+
+        I added the \textbf{Age} and \textbf{Fare} columns to the features list. Both the \textbf{Age} and \textbf{Fare} column had missing values which were filled with the median age.
+
+        \begin{lstlisting}[language=Python]
+    def median_if_not_null(df, column):
+        if not df[column].isnull().all():
+            df[column] = df[column].fillna(df[column].median())
+        else:
+            df[column] = df[column].replace(0, np.nan)
+            df[column] = df[column].fillna(df[column].median())
+        \end{lstlisting}
+
+        The \textbf{median\_if\_not\_null()} function was used to fill the missing values in the \textbf{Age} and \textbf{Fare} columns.
+
+        \begin{lstlisting}[language=Python]
+    features = [
+        "Pclass", "Sex", "SibSp", "Parch",
+        "Age", "Fare", "Embarked"
+    ]
+
+    median_if_not_null(df, "Fare")
+    median_if_not_null(df, "Age")
+
+    X = pd.get_dummies(train_data[features])
+    X_test = pd.get_dummies(test_data[features])
+        \end{lstlisting}
+
+        Also, I added the \textbf{FamilySize}, and \textbf{IsAlone} columns to the dataset.
+
+        \begin{lstlisting}[language=Python]
+    train_data["FamilySize"] = train_data["SibSp"] +
+                                train_data["Parch"] + 1
+    train_data["IsAlone"] = 0
+    train_data.loc[train_data["FamilySize"] == 1, "IsAlone"] = 1
+
+    test_data["FamilySize"] = test_data["SibSp"] + test_data["Parch"] + 1
+    test_data["IsAlone"] = 0
+    test_data.loc[test_data["FamilySize"] == 1, "IsAlone"] = 1
+        \end{lstlisting}
+
+        Here, the \textbf{FamilySize} column was created by adding the \textbf{SibSp} and \textbf{Parch} columns. $+1$ was added to include the passenger itself. The \textbf{IsAlone} column was created to check if the passenger was alone or not.
+
+        So, now the features list looked like this:
+
+        \begin{lstlisting}[language=Python]
+    features = [
+        "Pclass", "Sex", "SibSp", "Parch", "Age",
+        "Fare", "Embarked", "FamilySize", "IsAlone"
+    ]
+        \end{lstlisting}
+
+        \subsection{Hyperparameter Tuning}
+
+        I used the GridSearchCV to find the best hyperparameters for the Random Forest Classifier.
+
+        \begin{lstlisting}[language=Python]
+    from sklearn.model_selection import GridSearchCV
+
+    param_grid = {
+        'n_estimators': [100, 200, 300],
+        'max_depth': [5, 10, 15],
+        'min_samples_split': [2, 5, 10],
+    }
+
+    grid_search = GridSearchCV(
+        estimator=RandomForestClassifier(),
+        param_grid=param_grid,
+        cv=5
+    )
+    grid_search.fit(X, y)
+    best_params = grid_search.best_estimator_
+        \end{lstlisting}
+
+        \subsection{Submission}
+
+        The model was trained on the train dataset and tested on the test dataset. The predictions were saved in a CSV file $\texttt{submission.csv}$ and submitted to Kaggle.
+
+        \subsection{Result}
+
+        The model achieved an improved accuracy of $\texttt{0.77751}$ and the rank improved to $\texttt{4,398}$ out of $\texttt{16,861}$ participants. \\
+
+        Github link: \href{https://github.com/achyutkneupane/KaggleTitanic/tree/0d5344615e43e0bf442ff277bbb8fc93b31fcfda}{0d5344615e43e0bf442ff277bbb8fc93b31fcfda}
+
+        \end{TheSolution}
+
+    \end{questions}
+
+\end{document}
+
