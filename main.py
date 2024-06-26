@@ -3,8 +3,8 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 
-train_data = pd.read_csv("dataset/train.csv")
-test_data = pd.read_csv("dataset/test.csv")
+pd_train_data = pd.read_csv("dataset/train.csv")
+pd_test_data = pd.read_csv("dataset/test.csv")
 
 
 def median_if_not_null(df, column):
@@ -16,10 +16,14 @@ def median_if_not_null(df, column):
 
 
 def main():
+    train_data = pd_train_data.drop([
+        "PassengerId", "Name", "Ticket", "Cabin"
+    ], axis=1)
+    test_data = pd_test_data.drop(["Name", "Ticket", "Cabin"], axis=1)
+
     y = train_data["Survived"]
 
     for df in [train_data, test_data]:
-
         median_if_not_null(df, "Fare")
         median_if_not_null(df, "Age")
 
@@ -27,6 +31,8 @@ def main():
         df["FamilySize"] = df["SibSp"] + df["Parch"] + 1
         df["IsAlone"] = 0
         df.loc[df["FamilySize"] == 1, "IsAlone"] = 1
+        df["Sex"] = df["Sex"].map({'male': 0, 'female': 1})
+        df["Embarked"] = df["Embarked"].map({'S': 0, 'C': 1, 'Q': 2})
 
     features = ["Pclass", "Sex", "SibSp", "Parch", "Age", "Fare", "Embarked", "FamilySize", "IsAlone"]
     X = pd.get_dummies(train_data[features])
